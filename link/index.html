@@ -3,102 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Simple Link Shortener</title>
+  <title>Basic Link Shortener for Qiyas</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-  <!-- Main Container -->
-  <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+<body>
+  <div id="app" class="flex items-center justify-center min-h-screen p-4">
     <!-- Login Screen -->
-    <div id="login-screen">
-      <h2 class="text-2xl font-bold text-center mb-6">🔒 Admin Login</h2>
-      <input id="password" type="password" 
+    <div id="login-screen" class="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+      <h2 class="text-2xl font-bold mb-4 text-center">🔑 Admin Login</h2>
+      <input type="password" id="password" 
              class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2"
              placeholder="Enter password">
-      <button onclick="login()"
+      <button onclick="handleLogin()"
               class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition">
-        Unlock
+        Continue
       </button>
-      <p id="error" class="text-red-500 text-center mt-3 hidden">Wrong password!</p>
+      <p id="login-error" class="text-red-500 text-center mt-3 hidden">Wrong password!</p>
     </div>
 
-    <!-- App Screen (Hidden Initially) -->
-    <div id="app-screen" class="hidden">
-      <h1 class="text-2xl font-bold text-center mb-6">🔗 Create Short Link</h1>
-      <input id="url" type="url" 
+    <!-- Shortener Screen -->
+    <div id="shortener-screen" class="hidden bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+      <h2 class="text-2xl font-bold mb-4 text-center">✂️ Shorten URL</h2>
+      <input type="url" id="original-url" 
              class="w-full p-3 border rounded-lg mb-3 focus:outline-none focus:ring-2"
              placeholder="https://example.com">
-      <input id="alias" type="text" 
+      <input type="text" id="custom-alias" 
              class="w-full p-3 border rounded-lg mb-4 focus:outline-none focus:ring-2"
              placeholder="Custom alias (optional)">
-      <button onclick="createLink()"
+      <button onclick="createShortLink()"
               class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition">
-        Create Short URL
+        Create Short Link
       </button>
-      <div id="result" class="mt-5 text-center"></div>
+      <div id="result" class="mt-4 text-center"></div>
     </div>
   </div>
 
   <script>
     // Configuration
     const PASSWORD_HASH = '715d19bffe53f3abc8c0addfa9f162021277eb14a8e7992f888c2929f02783d29e0b0d3bd0e3816eb008bbff3b43874f7e066b7d99de20c8b44a25bef05fd52f';
-    let links = JSON.parse(localStorage.getItem('short-links') || {};
+    const BASE_PATH = '/link/';
+    let isAuthenticated = localStorage.getItem('isAuth') === 'true';
+    let links = JSON.parse(localStorage.getItem('short-links') || '{}');
 
-    // Initial Check for Redirect
-    const path = window.location.pathname;
-    if(path.startsWith('/link/')) {
-      const alias = path.split('/link/')[1];
-      if(links[alias]) window.location.href = links[alias];
-      else document.body.innerHTML = '<div class="text-center p-8 text-red-500">Link not found</div>';
+    // Initial Setup
+    function init() {
+      const path = window.location.pathname;
+      
+      // Handle short link redirect
+      if(path.startsWith(BASE_PATH)) {
+        const alias = path.replace(BASE_PATH, '');
+        if(alias && links[alias]) {
+          return window.location.replace(links[alias]);
+        }
+      }
+
+      // Show appropriate screen
+      if(isAuthenticated) {
+        showShortener();
+      } else {
+        showLogin();
+      }
     }
 
-    async function login() {
+    // Auth Functions
+    async function handleLogin() {
       const password = document.getElementById('password').value;
-      const encoder = new TextEncoder();
-      const data = encoder.encode(btoa(password));
-      const hashBuffer = await crypto.subtle.digest('SHA-512', data);
+      const encoded = btoa(password);
+      const buffer = new TextEncoder().encode(encoded);
+      const hashBuffer = await crypto.subtle.digest('SHA-512', buffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
       if(hashHex === PASSWORD_HASH) {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('app-screen').classList.remove('hidden');
+        localStorage.setItem('isAuth', 'true');
+        isAuthenticated = true;
+        showShortener();
+        window.history.replaceState({}, '', BASE_PATH);
       } else {
-        document.getElementById('error').classList.remove('hidden');
+        document.getElementById('login-error').classList.remove('hidden');
       }
     }
 
-    function createLink() {
-      const url = document.getElementById('url').value.trim();
-      let alias = document.getElementById('alias').value.trim();
+    // Shortener Functions
+    function createShortLink() {
+      const url = document.getElementById('original-url').value.trim();
+      let alias = document.getElementById('custom-alias').value.trim();
 
       if(!url) return alert('Please enter a URL');
-      
-      // Generate random alias if empty
+
+      // Generate alias if empty
       if(!alias) {
         do {
-          alias = Math.random().toString(36).substr(2, 5);
+          alias = Math.random().toString(36).substr(2, 6);
         } while(links[alias]);
       } else if(links[alias]) {
         return alert('Alias already exists!');
       }
 
-      // Save to localStorage
+      // Save link
       links[alias] = url;
       localStorage.setItem('short-links', JSON.stringify(links));
 
       // Show result
-      const shortUrl = `${window.location.origin}/link/${alias}`;
+      const shortUrl = `${window.location.origin}${BASE_PATH}${alias}`;
       document.getElementById('result').innerHTML = `
-        <div class="bg-gray-100 p-3 rounded-lg break-all">
-          Created: <a href="${shortUrl}" target="_blank" class="text-blue-500 hover:underline">${shortUrl}</a>
+        <div class="bg-gray-100 p-3 rounded-lg break-words mt-4">
+          <span class="block mb-1">Short URL:</span>
+          <a href="${shortUrl}" target="_blank" 
+             class="text-blue-500 hover:underline font-mono">
+            ${shortUrl}
+          </a>
         </div>
       `;
 
       // Clear inputs
-      document.getElementById('url').value = '';
-      document.getElementById('alias').value = '';
+      document.getElementById('original-url').value = '';
+      document.getElementById('custom-alias').value = '';
     }
+
+    // UI Helpers
+    function showLogin() {
+      document.getElementById('login-screen').classList.remove('hidden');
+      document.getElementById('shortener-screen').classList.add('hidden');
+      document.getElementById('password').value = '';
+    }
+
+    function showShortener() {
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('shortener-screen').classList.remove('hidden');
+    }
+
+    // Start the app
+    init();
   </script>
 </body>
 </html>
