@@ -26,7 +26,20 @@
 
   <script>
     const storedHash = "715d19bffe53f3abc8c0addfa9f162021277eb14a8e7992f888c2929f02783d29e0b0d3bd0e3816eb008bbff3b43874f7e066b7d99de20c8b44a25bef05fd52f";
-    const links = {}; // In-memory link store
+    const links = JSON.parse(localStorage.getItem('links')) || {}; // Load links from localStorage
+
+    window.onload = function() {
+      const path = window.location.pathname;
+
+      if (path.startsWith('/link/')) {
+        const alias = path.split('/link/')[1];
+        if (links[alias]) {
+          window.location.href = links[alias]; // Redirect to the actual URL
+        } else {
+          alert('Alias not found.');
+        }
+      }
+    };
 
     async function verifyPassword() {
       const input = document.getElementById('password-input').value.trim();
@@ -64,8 +77,10 @@
       }
 
       links[alias] = url;
+      localStorage.setItem('links', JSON.stringify(links)); // Save links to localStorage
+
       const shortUrl = `${location.origin}/link/${alias}`;
-      document.getElementById('result').innerHTML = `Short URL: <a href="${url}" class="text-blue-600 underline" target="_blank">${shortUrl}</a>`;
+      document.getElementById('result').innerHTML = `Short URL: <a href="${shortUrl}" class="text-blue-600 underline" target="_blank">${shortUrl}</a>`;
     }
   </script>
 </body>
