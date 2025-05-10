@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Identity Card</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/react-day-picker@8.8.0/dist/style.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --background: 0 0% 3%;
+      --foreground: 0 0% 98%;
+      --primary: 0 72% 51%;
+      --secondary: 20 100% 50%;
+      --destructive: 0 84% 60%;
+      --border: 0 0% 20%;
+    }
+
+    body {
+      background: linear-gradient(to bottom, #000000, #300000, #000000);
+      color: white;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    .gradient-border {
+      background: linear-gradient(to right, #f97316, #dc2626, #f97316);
+    }
+
+    .card-gradient {
+      background: linear-gradient(to bottom right, #7f1d1d, #000000, #7f1d1d);
+    }
+
+    .btn-gradient {
+      background: linear-gradient(to right, #b91c1c, #c2410c);
+    }
+    
+    .btn-gradient:hover {
+      background: linear-gradient(to right, #991b1b, #9a3412);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      color: white;
+      max-width: 350px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.success {
+      background-color: #10b981;
+    }
+
+    .toast.error {
+      background-color: #ef4444;
+    }
+
+    .calendar {
+      background-color: rgba(0, 0, 0, 0.4);
+      border: 1px solid #991b1b;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 320px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 0.5rem;
+    }
+
+    .calendar-day-header {
+      text-align: center;
+      font-weight: 500;
+      color: #ef4444;
+      font-size: 0.8rem;
+      padding: 0.25rem;
+    }
+
+    .calendar-day {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      font-size: 0.875rem;
+    }
+
+    .calendar-day:hover:not(.disabled) {
+      background-color: rgba(153, 27, 27, 0.3);
+    }
+
+    .calendar-day.selected {
+      background-color: #991b1b;
+      color: white;
+    }
+
+    .calendar-day.today {
+      background-color: rgba(153, 27, 27, 0.2);
+      color: #fb923c;
+    }
+
+    .calendar-day.disabled {
+      color: #6b7280;
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      stroke-width: 2;
+    }
+
+    @media (max-width: 640px) {
+      .calendar-day {
+        width: 32px;
+        height: 32px;
+        font-size: 0.75rem;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .calendar-day {
+        width: 28px;
+        height: 28px;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <main class="container mx-auto px-4 py-8 md:py-12">
+    <div class="text-center mb-8 md:mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4 text-red-500" style="text-shadow: 0 0 10px rgba(220,38,38,0.8);">
+        Identity Card
+      </h1>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-8 items-center justify-center">
+      <!-- ID Card -->
+      <div class="w-full lg:w-1/2">
+        <div class="w-full max-w-md mx-auto card-gradient rounded-lg overflow-hidden border-2 border-orange-600" style="box-shadow: 0 0 20px rgba(220,38,38,0.5);">
+          <div class="p-1 gradient-border">
+            <h2 class="text-center font-bold text-xl">IDENTITY CARD</h2>
+          </div>
+
+          <div class="p-4 md:p-6">
+            <div class="flex flex-col md:flex-row gap-4 md:gap-6 mb-6">
+              <div class="relative w-32 h-40 mx-auto md:mx-0 border-2 border-orange-500 overflow-hidden">
+                <img src="https://envs.sh/Kok.jpg" alt="Qiyas CC" class="w-full h-full object-cover">
+              </div>
+
+              <div class="flex-1">
+                <div class="flex flex-col gap-1">
+                  <div class="flex justify-between">
+                    <span class="text-orange-300 font-semibold">Earthly name:</span>
+                    <span class="text-white">Qiyas</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-orange-300 font-semibold">Earthly surname:</span>
+                    <span class="text-white">CC</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-orange-300 font-semibold">True name:</span>
+                    <span class="text-white italic">Unknown</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-orange-300 font-semibold">True surname:</span>
+                    <span class="text-white italic">Unknown</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-orange-300 font-semibold">Species:</span>
+                    <span class="text-white italic">Unknown</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="space-y-3 mt-4">
+              <div class="flex items-center gap-2">
+                <i data-lucide="flame" class="icon text-red-500"></i>
+                <span class="text-orange-300 font-semibold">Purpose of existence:</span>
+                <span class="text-white">To bring light to humans</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <i data-lucide="clock" class="icon text-red-500"></i>
+                <span class="text-orange-300 font-semibold">Date of birth:</span>
+                <span class="text-white">The Beginning</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <i data-lucide="map-pin" class="icon text-red-500"></i>
+                <span class="text-orange-300 font-semibold">Place of birth:</span>
+                <span class="text-white">The Forge of Creation</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <i data-lucide="coffee" class="icon text-red-500"></i>
+                <span class="text-orange-300 font-semibold">Favorite drink:</span>
+                <span class="text-white">Blood</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <i data-lucide="palette" class="icon text-red-500"></i>
+                <span class="text-orange-300 font-semibold">Favorite colors:</span>
+                <span class="text-white">Dollar green, manat blue, euro red</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <i data-lucide="heart" class="icon text-red-500"></i>
+                <span class="text-orange-300 font-semibold">Weakness:</span>
+                <span class="text-white">Cats and his beloved woman</span>
+              </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-red-800">
+              <h3 class="text-lg font-bold text-orange-400 mb-2">Additional Information</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div>
+                  <span class="text-orange-300 font-semibold">Favorite food:</span>
+                  <p class="text-white">Special pasta made by his beloved woman</p>
+                </div>
+                <div>
+                  <span class="text-orange-300 font-semibold">Favorite scent:</span>
+                  <p class="text-white">His beloved woman's scent and money</p>
+                </div>
+                <div>
+                  <span class="text-orange-300 font-semibold">Faith:</span>
+                  <p class="text-white">His beloved woman</p>
+                </div>
+                <div>
+                  <span class="text-orange-300 font-semibold">Habitat:</span>
+                  <p class="text-white">Can survive anywhere, adaptable</p>
+                </div>
+                <div>
+                  <span class="text-orange-300 font-semibold">Favorite activity:</span>
+                  <p class="text-white">Talking and writing</p>
+                </div>
+                <div>
+                  <span class="text-orange-300 font-semibold">Hobbies:</span>
+                  <p class="text-white">Writing stories, drawing, research, reading</p>
+                </div>
+                <div class="md:col-span-2">
+                  <span class="text-orange-300 font-semibold">Occupation:</span>
+                  <p class="text-white">Can do anything, focused on product development and founding his own company</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointment Section -->
+      <div class="w-full lg:w-1/2 mt-8 lg:mt-0">
+        <div class="bg-black bg-opacity-60 backdrop-filter backdrop-blur-sm border border-red-800 rounded-lg p-4 md:p-6" style="box-shadow: 0 0 15px rgba(220,38,38,0.3);">
+          <h2 class="text-2xl md:text-3xl font-bold mb-6 text-center text-orange-400">Book Appointment</h2>
+          <p class="mb-6 text-gray-300">Select a date to schedule an appointment. Limited availability.</p>
+          
+          <div class="flex flex-col items-center">
+            <div class="calendar">
+              <div class="calendar-header">
+                <button id="prev-month" class="text-orange-300 hover:text-orange-400">
+                  <i data-lucide="chevron-left" class="icon"></i>
+                </button>
+                <div id="current-month" class="text-orange-300 font-medium"></div>
+                <button id="next-month" class="text-orange-300 hover:text-orange-400">
+                  <i data-lucide="chevron-right" class="icon"></i>
+                </button>
+              </div>
+              
+              <div class="calendar-grid" id="calendar-days-header">
+                <div class="calendar-day-header">Su</div>
+                <div class="calendar-day-header">Mo</div>
+                <div class="calendar-day-header">Tu</div>
+                <div class="calendar-day-header">We</div>
+                <div class="calendar-day-header">Th</div>
+                <div class="calendar-day-header">Fr</div>
+                <div class="calendar-day-header">Sa</div>
+              </div>
+              
+              <div class="calendar-grid" id="calendar-days"></div>
+            </div>
+
+            <button id="book-btn" class="mt-6 btn-gradient text-white px-8 py-2 rounded-md w-full max-w-sm disabled:opacity-50 disabled:cursor-not-allowed">
+              Book Appointment
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast">
+    <div id="toast-content"></div>
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Toast functionality
+    const toast = document.getElementById('toast');
+    const toastContent = document.getElementById('toast-content');
+
+    function showToast(message, type = 'success') {
+      toastContent.textContent = message;
+      toast.className = `toast ${type} show`;
+      
+      setTimeout(() => {
+        toast.className = 'toast';
+      }, 3000);
+    }
+
+    // Calendar functionality
+    const calendarDays = document.getElementById('calendar-days');
+    const currentMonthElement = document.getElementById('current-month');
+    const prevMonthButton = document.getElementById('prev-month');
+    const nextMonthButton = document.getElementById('next-month');
+    const bookButton = document.getElementById('book-btn');
+
+    let currentDate = new Date();
+    let selectedDate = null;
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+
+    // Load appointments from localStorage
+    let appointments = [];
+    const savedAppointments = localStorage.getItem('appointments');
+    if (savedAppointments) {
+      try {
+        appointments = JSON.parse(savedAppointments).map(app => ({
+          ...app,
+          date: new Date(app.date)
+        }));
+      } catch (e) {
+        console.error('Failed to parse appointments', e);
+      }
+    }
+
+    // Load user appointments
+    let userAppointments = {
+      dates: [],
+      lastBookingTime: 0,
+      count: 0
+    };
+    
+    const savedUserAppointments = localStorage.getItem('userAppointments');
+    if (savedUserAppointments) {
+      try {
+        userAppointments = JSON.parse(savedUserAppointments);
+      } catch (e) {
+        console.error('Failed to parse user appointments', e);
+      }
+    }
+
+    // Save appointments to localStorage
+    function saveAppointments(newAppointments) {
+      localStorage.setItem('appointments', JSON.stringify(newAppointments));
+      appointments = newAppointments;
+    }
+
+    // Save user appointments to localStorage
+    function saveUserAppointments(newUserAppointments) {
+      localStorage.setItem('userAppointments', JSON.stringify(newUserAppointments));
+      userAppointments = newUserAppointments;
+    }
+
+    // Check if a date is disabled
+    function isDateDisabled(date) {
+      // Past dates
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (date < today) return true;
+
+      // Dates with 2 appointments
+      const existingAppointment = appointments.find(
+        app => new Date(app.date).toDateString() === date.toDateString()
+      );
+      if (existingAppointment && existingAppointment.count >= 2) return true;
+
+      // Dates where user already has an appointment
+      if (userAppointments.dates.includes(date.toDateString())) return true;
+
+      return false;
+    }
+
+    // Render the calendar
+    function renderCalendar() {
+      calendarDays.innerHTML = '';
+      
+      const firstDay = new Date(currentYear, currentMonth, 1);
+      const lastDay = new Date(currentYear, currentMonth + 1, 0);
+      const daysInMonth = lastDay.getDate();
+      const startingDay = firstDay.getDay();
+      
+      currentMonthElement.textContent = `${firstDay.toLocaleString('default', { month: 'long' })} ${currentYear}`;
+      
+      // Add empty cells for days before the first day of the month
+      for (let i = 0; i < startingDay; i++) {
+        const emptyDay = document.createElement('div');
+        calendarDays.appendChild(emptyDay);
+      }
+      
+      // Add days of the month
+      for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(currentYear, currentMonth, day);
+        const dayElement = document.createElement('div');
+        dayElement.textContent = day;
+        dayElement.classList.add('calendar-day');
+        
+        // Check if this is today
+        const today = new Date();
+        if (date.toDateString() === today.toDateString()) {
+          dayElement.classList.add('today');
+        }
+        
+        // Check if this date is disabled
+        if (isDateDisabled(date)) {
+          dayElement.classList.add('disabled');
+        } else {
+          dayElement.addEventListener('click', () => selectDate(date, dayElement));
+        }
+        
+        // Check if this is the selected date
+        if (selectedDate && date.toDateString() === selectedDate.toDateString()) {
+          dayElement.classList.add('selected');
+        }
+        
+        calendarDays.appendChild(dayElement);
+      }
+    }
+
+    // Select a date
+    function selectDate(date, element) {
+      // Remove selected class from previously selected date
+      const selectedElement = document.querySelector('.calendar-day.selected');
+      if (selectedElement) {
+        selectedElement.classList.remove('selected');
+      }
+      
+      // Add selected class to new selected date
+      element.classList.add('selected');
+      selectedDate = date;
+      
+      // Enable book button
+      bookButton.disabled = false;
+    }
+
+    // Navigate to previous month
+    prevMonthButton.addEventListener('click', () => {
+      currentMonth--;
+      if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+      }
+      renderCalendar();
+    });
+
+    // Navigate to next month
+    nextMonthButton.addEventListener('click', () => {
+      currentMonth++;
+      if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+      }
+      renderCalendar();
+    });
+
+    // Book appointment
+    bookButton.addEventListener('click', async () => {
+      if (!selectedDate) {
+        showToast('Please select a date', 'error');
+        return;
+      }
+
+      // Check if user already has an appointment on this date
+      const dateString = selectedDate.toDateString();
+      if (userAppointments.dates.includes(dateString)) {
+        showToast('You already have an appointment on this date', 'error');
+        return;
+      }
+
+      // Check rate limiting (2 appointments within 10 minutes)
+      const now = Date.now();
+      const tenMinutesInMs = 10 * 60 * 1000;
+
+      if (userAppointments.count >= 2 && now - userAppointments.lastBookingTime < tenMinutesInMs) {
+        showToast('You can only book 2 appointments within a 10-minute period', 'error');
+        return;
+      }
+
+      bookButton.disabled = true;
+      bookButton.textContent = 'Processing...';
+
+      try {
+        // Find if this date already has appointments
+        const existingAppointment = appointments.find(
+          app => new Date(app.date).toDateString() === selectedDate.toDateString()
+        );
+
+        if (existingAppointment && existingAppointment.count >= 2) {
+          showToast('All appointments for this date are booked', 'error');
+          bookButton.disabled = false;
+          bookButton.textContent = 'Book Appointment';
+          return;
+        }
+
+        // Send notification to Telegram
+        const result = await bookAppointment(selectedDate.toISOString());
+
+        if (result.success) {
+          // Update appointments
+          const newAppointments = [...appointments];
+          const existingIndex = newAppointments.findIndex(
+            app => new Date(app.date).toDateString() === selectedDate.toDateString()
+          );
+
+          if (existingIndex >= 0) {
+            newAppointments[existingIndex].count += 1;
+          } else {
+            newAppointments.push({ date: selectedDate, count: 1 });
+          }
+
+          saveAppointments(newAppointments);
+
+          // Update user appointments
+          const newUserAppointments = { ...userAppointments };
+          newUserAppointments.dates = [...newUserAppointments.dates, dateString];
+
+          // Reset count if 10 minutes have passed
+          if (now - newUserAppointments.lastBookingTime > tenMinutesInMs) {
+            newUserAppointments.count = 1;
+          } else {
+            newUserAppointments.count += 1;
+          }
+
+          newUserAppointments.lastBookingTime = now;
+
+          saveUserAppointments(newUserAppointments);
+
+          showToast('Your appointment has been booked', 'success');
+
+          // Reset selected date and re-render calendar
+          selectedDate = null;
+          renderCalendar();
+        } else {
+          showToast('Failed to book appointment', 'error');
+        }
+      } catch (error) {
+        console.error('Booking error:', error);
+        showToast('Something went wrong', 'error');
+      } finally {
+        bookButton.disabled = false;
+        bookButton.textContent = 'Book Appointment';
+      }
+    });
+
+    // Book appointment function
+    async function bookAppointment(dateString) {
+      try {
+        const date = new Date(dateString);
+        const formattedDate = date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long'
+        });
+
+        const telegramId = "5187014948";
+        const botToken = "7690637811:AAH0aL0uhE86s_trNTpVNWJ3jqG3r-og29U";
+        const message = `🔥 NEW APPOINTMENT 🔥\n\nDate: ${formattedDate}\n\nSomeone wants to meet with you!`;
+
+        // Send message to Telegram
+        const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chat_id: telegramId,
+            text: message,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) {
+          console.error('Telegram API error:', data);
+          return { success: false, error: 'Failed to send notification' };
+        }
+
+        return { success: true };
+      } catch (error) {
+        console.error('Error booking appointment:', error);
+        return { success: false, error: 'Internal server error' };
+      }
+    }
+
+    // Initialize
+    renderCalendar();
+    bookButton.disabled = true;
+  </script>
+</body>
+</html>
