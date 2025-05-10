@@ -18,13 +18,15 @@
   <!-- Main App Screen -->
   <div id="app-screen" class="hidden bg-white p-6 rounded-xl shadow-md w-full max-w-md">
     <h2 class="text-xl font-semibold mb-4 text-center">Link Shortener</h2>
-    <input id="url-input" type="url" placeholder="Enter a long URL" class="w-full p-2 border rounded mb-4 focus:outline-none focus:ring" />
+    <input id="url-input" type="url" placeholder="Enter a long URL" class="w-full p-2 border rounded mb-3 focus:outline-none focus:ring" />
+    <input id="alias-input" type="text" placeholder="Custom alias (optional)" class="w-full p-2 border rounded mb-4 focus:outline-none focus:ring" />
     <button onclick="shortenUrl()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Shorten</button>
     <div id="result" class="mt-4 text-center text-gray-700 font-mono"></div>
   </div>
 
   <script>
     const storedHash = "715d19bffe53f3abc8c0addfa9f162021277eb14a8e7992f888c2929f02783d29e0b0d3bd0e3816eb008bbff3b43874f7e066b7d99de20c8b44a25bef05fd52f";
+    const links = {}; // In-memory link store
 
     async function verifyPassword() {
       const input = document.getElementById('password-input').value.trim();
@@ -44,10 +46,26 @@
 
     function shortenUrl() {
       const url = document.getElementById('url-input').value.trim();
+      let alias = document.getElementById('alias-input').value.trim();
+
       if (!url) return;
-      const code = Math.random().toString(36).substring(2, 7);
-      const shortUrl = `${location.origin}/${code}`;
-      document.getElementById('result').textContent = `Short URL: ${shortUrl}`;
+
+      if (alias) {
+        if (links[alias]) {
+          document.getElementById('result').textContent = `Alias "${alias}" already exists. Try another.`;
+          return;
+        }
+      } else {
+        // Generate random alias
+        alias = Math.random().toString(36).substring(2, 7);
+        while (links[alias]) {
+          alias = Math.random().toString(36).substring(2, 7);
+        }
+      }
+
+      links[alias] = url;
+      const shortUrl = `${location.origin}/link/${alias}`;
+      document.getElementById('result').innerHTML = `Short URL: <a href="${url}" class="text-blue-600 underline" target="_blank">${shortUrl}</a>`;
     }
   </script>
 </body>
