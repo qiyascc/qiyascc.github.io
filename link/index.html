@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" class="bg-gray-100">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Secure Link Shortener</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center h-screen">
+  <!-- Login Screen -->
+  <div id="login-screen" class="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+    <h2 class="text-2xl font-semibold mb-4 text-center">Enter Password</h2>
+    <input id="password-input" type="password" placeholder="Enter password" class="w-full p-2 border rounded mb-4 focus:outline-none focus:ring" />
+    <button onclick="checkPassword()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Login</button>
+    <p id="error-msg" class="text-red-500 mt-2 text-sm hidden">Incorrect password</p>
+  </div>
+
+  <!-- App Screen -->
+  <div id="app-screen" class="hidden bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+    <h2 class="text-xl font-semibold mb-4 text-center">Link Shortener</h2>
+    <input id="url-input" type="url" placeholder="Enter full URL" class="w-full p-2 border rounded mb-4 focus:outline-none focus:ring" />
+    <button onclick="shortenUrl()" class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">Shorten</button>
+    <div id="result" class="mt-4 text-center text-gray-700 font-mono"></div>
+  </div>
+
+  <script>
+    // This hash is SHA-512(base64("74927"))
+    const expectedHash = "07193f4c9e6b4c947a90b0ddfdf1b43a0a3cd155d630462b62154bb24de0e91deec4dc9a2507ad17151bbd7c8795e94b1c3bcb0e9d024a1f0618f70df9a043cc";
+
+    async function hashPassword(input) {
+      const base64 = btoa(input);
+      const buffer = new TextEncoder().encode(base64);
+      const digest = await crypto.subtle.digest('SHA-512', buffer);
+      const hashArray = Array.from(new Uint8Array(digest));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function checkPassword() {
+      const input = document.getElementById('password-input').value;
+      const hashed = await hashPassword(input);
+
+      if (hashed === expectedHash) {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('app-screen').classList.remove('hidden');
+      } else {
+        document.getElementById('error-msg').classList.remove('hidden');
+      }
+    }
+
+    function shortenUrl() {
+      const url = document.getElementById('url-input').value.trim();
+      if (!url) return;
+      const slug = Math.random().toString(36).substring(2, 7);
+      const shortUrl = `${location.origin}/${slug}`;
+      document.getElementById('result').textContent = `Short URL: ${shortUrl}`;
+    }
+  </script>
+</body>
+</html>
