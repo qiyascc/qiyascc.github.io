@@ -25,25 +25,38 @@
   </div>
 
   <script>
+    // LocalStorage yönetimi için yardımcı fonksiyonlar
+    const storageKey = 'linkShortenerData';
     const storedHash = "715d19bffe53f3abc8c0addfa9f162021277eb14a8e7992f888c2929f02783d29e0b0d3bd0e3816eb008bbff3b43874f7e066b7d99de20c8b44a25bef05fd52f";
-    const links = JSON.parse(localStorage.getItem('links')) || {}; // Load links from localStorage
+
+    function loadLinks() {
+      const data = localStorage.getItem(storageKey);
+      return data ? JSON.parse(data).links : {};
+    }
+
+    function saveLinks(links) {
+      const data = JSON.stringify({ links, hash: storedHash });
+      localStorage.setItem(storageKey, data);
+    }
+
+    let links = loadLinks();
 
     window.onload = function() {
       const path = window.location.pathname;
-
+      
       if (path.startsWith('/link/')) {
         const alias = path.split('/link/')[1];
         if (links[alias]) {
-          window.location.href = links[alias]; // Redirect to the actual URL
+          window.location.href = links[alias];
         } else {
-          alert('Alias not found.');
+          document.body.innerHTML = `<div class="text-center p-8">Alias not found</div>`;
         }
       }
     };
 
     async function verifyPassword() {
       const input = document.getElementById('password-input').value.trim();
-      const encoded = btoa(input); // Base64 encode
+      const encoded = btoa(input);
       const buffer = new TextEncoder().encode(encoded);
       const hashBuffer = await crypto.subtle.digest('SHA-512', buffer);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -69,18 +82,20 @@
           return;
         }
       } else {
-        // Generate random alias
-        alias = Math.random().toString(36).substring(2, 7);
-        while (links[alias]) {
+        do {
           alias = Math.random().toString(36).substring(2, 7);
-        }
+        } while (links[alias]);
       }
 
       links[alias] = url;
-      localStorage.setItem('links', JSON.stringify(links)); // Save links to localStorage
+      saveLinks(links);
 
       const shortUrl = `${location.origin}/link/${alias}`;
       document.getElementById('result').innerHTML = `Short URL: <a href="${shortUrl}" class="text-blue-600 underline" target="_blank">${shortUrl}</a>`;
+      
+      // Input alanlarını temizle
+      document.getElementById('url-input').value = '';
+      document.getElementById('alias-input').value = '';
     }
   </script>
 </body>
